@@ -7,6 +7,8 @@ from django.db import connection, models
 from django.dispatch import Signal
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ValidationError
+from django.db import connection
 
 from tenant_users.compat import (
     TenantMixin,
@@ -390,7 +392,6 @@ class UserProfile(AbstractBaseUser, PermissionsMixinFacade):
 
     email = models.EmailField(
         _('Email Address'),
-        unique=True,
         db_index=True,
     )
 
@@ -401,6 +402,10 @@ class UserProfile(AbstractBaseUser, PermissionsMixinFacade):
 
     class Meta(object):
         abstract = True
+
+    def clean(self):
+        if UserProfile.objects.filter(tenants__schema_name__in=[connection.schema_name], email=self.email):
+            raise ValidationError('User already exists.')
 
     def has_verified_email(self):
         return self.is_verified
