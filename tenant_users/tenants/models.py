@@ -247,7 +247,7 @@ class UserProfileManager(BaseUserManager):
         is_staff,
         is_superuser,
         is_verified,
-        **extra_fields,
+        **extra_fields
     ):
         # Do some schema validation to protect against calling create user from
         # inside a tenant. Must create public tenant permissions during user
@@ -315,7 +315,7 @@ class UserProfileManager(BaseUserManager):
         email=None,
         password=None,
         is_staff=False,
-        **extra_fields,
+        **extra_fields
     ):
         return self._create_user(
             email,
