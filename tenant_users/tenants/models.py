@@ -107,7 +107,8 @@ class TenantBase(TenantMixin):
     def add_user(self, user_obj, is_superuser=False, is_staff=False):
         """Add user to tenant."""
         # User already is linked here..
-        if self.user_set.filter(id=user_obj.id).exists():
+        from django.db import connection
+        if self.user_set.filter(tenants__schema_name__in=[connection.schema_name], id=user_obj.id).exists():
             raise ExistsError(
                 'User already added to tenant: {0}'.format(
                     user_obj,
@@ -270,7 +271,7 @@ class UserProfileManager(BaseUserManager):
 
         email = self.normalize_email(email)
 
-        profile = UserModel.objects.filter(email=email).first()
+        profile = UserModel.objects.filter(tenants__schema_name__in=[connection.schema_name], email=email).first()
         if profile and profile.is_active:
             raise ExistsError('User already exists!')
 
@@ -402,10 +403,6 @@ class UserProfile(AbstractBaseUser, PermissionsMixinFacade):
 
     class Meta(object):
         abstract = True
-
-    def clean(self):
-        if UserProfile.objects.filter(tenants__schema_name__in=[connection.schema_name], email=self.email):
-            raise ValidationError('User already exists.')
 
     def has_verified_email(self):
         return self.is_verified
