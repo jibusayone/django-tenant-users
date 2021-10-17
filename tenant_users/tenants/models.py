@@ -248,6 +248,7 @@ class UserProfileManager(BaseUserManager):
         is_staff,
         is_superuser,
         is_verified,
+        retailer_schema,
         **extra_fields
     ):
         # Do some schema validation to protect against calling create user from
@@ -271,7 +272,7 @@ class UserProfileManager(BaseUserManager):
 
         email = self.normalize_email(email)
 
-        profile = UserModel.objects.filter(tenants__schema_name__in=[connection.schema_name], email=email).first()
+        profile = UserModel.objects.filter(tenants__schema_name__in=[retailer_schema], email=email).first()
         if profile and profile.is_active:
             raise ExistsError('User already exists!')
 
@@ -313,6 +314,7 @@ class UserProfileManager(BaseUserManager):
 
     def create_user(
         self,
+        retailer_schema,
         email=None,
         password=None,
         is_staff=False,
@@ -324,16 +326,18 @@ class UserProfileManager(BaseUserManager):
             is_staff,
             False,
             False,
+            retailer_schema,
             **extra_fields,
         )
 
-    def create_superuser(self, password, email=None, **extra_fields):
+    def create_superuser(self, retailer_schema, password, email=None, **extra_fields):
         return self._create_user(
             email,
             password,
             True,
             True,
             True,
+            retailer_schema,
             **extra_fields,
         )
 
